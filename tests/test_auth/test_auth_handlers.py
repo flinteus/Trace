@@ -37,7 +37,7 @@ def client():
 
 def test_protected_route_without_token(client):
     """Test protected route without JWT token should fail."""
-    response = client.get("/protected")
+    response = client.get("/api/v1/protected")
     assert response.status_code == 403  # HTTPBearer returns 403 when no credentials
 
 
@@ -46,7 +46,7 @@ def test_protected_route_with_valid_token(client, test_admin):
     access_token = create_jwt_token(test_admin.uid)
 
     response = client.get(
-        "/protected", headers={"Authorization": f"Bearer {access_token}"}
+        "/api/v1/protected", headers={"Authorization": f"Bearer {access_token}"}
     )
     assert response.status_code == 200
     assert response.json()["message"] == "This is a protected route"
@@ -56,7 +56,7 @@ def test_protected_route_with_valid_token(client, test_admin):
 def test_protected_route_with_invalid_token(client):
     """Test protected route with invalid JWT token."""
     response = client.get(
-        "/protected", headers={"Authorization": "Bearer invalid_token"}
+        "/api/v1/protected", headers={"Authorization": "Bearer invalid_token"}
     )
     assert response.status_code == 401
 
@@ -64,7 +64,7 @@ def test_protected_route_with_invalid_token(client):
 def test_login_with_valid_credentials(client, test_admin):
     """Test login endpoint with valid credentials returns both tokens."""
     response = client.post(
-        "/login",
+        "/api/v1/auth/login",
         json={"username": test_admin.username, "password": test_admin.username},
     )
     assert response.status_code == 200
@@ -80,14 +80,14 @@ def test_login_with_valid_credentials(client, test_admin):
 def test_login_with_invalid_credentials(client):
     """Test login endpoint with invalid credentials."""
     response = client.post(
-        "/login", json={"username": "wrong", "password": "credentials"}
+        "/api/v1/auth/login", json={"username": "wrong", "password": "credentials"}
     )
     assert response.status_code == 401
 
 
 def test_refresh_token_endpoint_with_valid_token(client, refresh_token):
     """Test refresh token endpoint with valid refresh token."""
-    response = client.post("/refresh", json={"refresh_token": refresh_token})
+    response = client.post("/api/v1/auth/refresh", json={"refresh_token": refresh_token})
     assert response.status_code == 200
     data = response.json()
     assert "access_token" in data
@@ -98,7 +98,7 @@ def test_refresh_token_endpoint_with_valid_token(client, refresh_token):
 
 def test_refresh_token_endpoint_with_invalid_token(client):
     """Test refresh token endpoint with invalid refresh token."""
-    response = client.post("/refresh", json={"refresh_token": "invalid_refresh_token"})
+    response = client.post("/api/v1/auth/refresh", json={"refresh_token": "invalid_refresh_token"})
     assert response.status_code == 401
     assert "Invalid refresh token" in response.json()["detail"]
 
@@ -113,7 +113,7 @@ def test_refresh_token_endpoint_with_expired_token(client):
         is_remember_me=False,
     )
 
-    response = client.post("/refresh", json={"refresh_token": expired_token})
+    response = client.post("/api/v1/auth/refresh", json={"refresh_token": expired_token})
     assert response.status_code == 401
     assert "Refresh token has expired" in response.json()["detail"]
 
@@ -132,7 +132,7 @@ def test_logout_with_valid_token_only(client, auth_headers, login_user):
     access_token = login_user["access_token"]
 
     # Logout with only access token
-    response = client.post("/logout", headers=auth_headers)
+    response = client.post("/api/v1/auth/logout", headers=auth_headers)
     assert response.status_code == 200
     assert response.json()["message"] == "Logout successful"
 
@@ -140,7 +140,7 @@ def test_logout_with_valid_token_only(client, auth_headers, login_user):
     assert access_token in blacklisted_tokens
 
     # Try to use the access token again - should fail
-    response = client.get("/protected", headers=auth_headers)
+    response = client.get("/api/v1/protected", headers=auth_headers)
     assert response.status_code == 401
 
 
@@ -149,7 +149,7 @@ def test_logout_with_both_tokens(client, auth_headers, login_user, refresh_token
     access_token = login_user["access_token"]
 
     # Logout with both tokens
-    response = client.post("/logout", headers=auth_headers)
+    response = client.post("/api/v1/auth/logout", headers=auth_headers)
     assert response.status_code == 200
     assert response.json()["message"] == "Logout successful"
 
@@ -160,7 +160,7 @@ def test_logout_with_both_tokens(client, auth_headers, login_user, refresh_token
 def test_me_endpoint_with_valid_token(client, test_admin):
     """Test /me endpoint with valid JWT token."""
     access_token = create_jwt_token(test_admin.uid)
-    response = client.get("/me", headers={"Authorization": f"Bearer {access_token}"})
+    response = client.get("/api/v1/users/me", headers={"Authorization": f"Bearer {access_token}"})
     assert response.status_code == 200
     data = response.json()
     assert data == {
@@ -173,7 +173,7 @@ def test_me_endpoint_with_valid_token(client, test_admin):
 
 def test_me_endpoint_without_token(client):
     """Test /me endpoint without JWT token should fail."""
-    response = client.get("/me")
+    response = client.get("/api/v1/users/me")
     assert response.status_code == 403
 
 
@@ -185,7 +185,7 @@ def test_refresh_token_creates_valid_access_token(
     # Get new access token using refresh token
     mocker.patch.object(settings, "ROTATE_REFRESH", rotation_enabled)
     refresh_token = create_refresh_token(test_admin.uid, True)
-    response = client.post("/refresh", json={"refresh_token": refresh_token})
+    response = client.post("/api/v1/auth/refresh", json={"refresh_token": refresh_token})
     assert response.status_code == 200
     assert "access_token" in response.json()
 
@@ -239,7 +239,7 @@ def test_refresh_token_flow_integration(client, test_admin):
     """Test complete refresh token flow integration."""
     # 1. Login and get both tokens
     login_response = client.post(
-        "/login", json={"username": test_admin.username, "password": "admin"}
+        "/api/v1/auth/login", json={"username": test_admin.username, "password": "admin"}
     )
     assert login_response.status_code == 200
     login_data = login_response.json()
@@ -248,11 +248,11 @@ def test_refresh_token_flow_integration(client, test_admin):
 
     # 2. Use access token for protected route
     auth_headers = {"Authorization": f"Bearer {access_token}"}
-    protected_response = client.get("/protected", headers=auth_headers)
+    protected_response = client.get("/api/v1/protected", headers=auth_headers)
     assert protected_response.status_code == 200
 
     # 3. Refresh the access token
-    refresh_response = client.post("/refresh", json={"refresh_token": refresh_token})
+    refresh_response = client.post("/api/v1/auth/refresh", json={"refresh_token": refresh_token})
     assert refresh_response.status_code == 200
     new_access_token = refresh_response.json()["access_token"]
     assert new_access_token != access_token  # Should be different
@@ -264,14 +264,14 @@ def test_refresh_token_flow_integration(client, test_admin):
 
     # 5. Logout with both tokens
     logout_response = client.post(
-        "/logout",
+        "/api/v1/auth/logout",
         headers=new_auth_headers,
     )
     assert logout_response.status_code == 200
 
     # 6. Verify tokens are revoked
-    protected_response3 = client.get("/protected", headers=new_auth_headers)
+    protected_response3 = client.get("/api/v1/protected", headers=new_auth_headers)
     assert protected_response3.status_code == 401
 
-    refresh_response2 = client.post("/refresh", json={"refresh_token": refresh_token})
+    refresh_response2 = client.post("/api/v1/auth/refresh", json={"refresh_token": refresh_token})
     assert refresh_response2.status_code == 401

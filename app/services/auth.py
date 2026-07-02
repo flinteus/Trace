@@ -3,7 +3,8 @@ import uuid
 
 from fastapi import HTTPException, status, Depends
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
-import jwt
+# import jwt
+from jose import jwt
 import secrets
 from datetime import datetime, timedelta, timezone
 from typing import Dict, Tuple

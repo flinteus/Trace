@@ -24,8 +24,8 @@ def clear_db():
     DB_USERS.clear()
 
 
-@pytest.mark.usefixtures("clear_db")
-@pytest.fixture
+# @pytest.mark.usefixtures("clear_db")
+@pytest.fixture(autouse=True)
 def test_admin():
     uid = uuid.uuid4()
     DB_USERS[str(uid)] = UserFullModel(
