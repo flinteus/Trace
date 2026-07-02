@@ -123,7 +123,7 @@ def test_refresh_token_endpoint_with_expired_token(client):
 
 def test_logout_without_token(client):
     """Test logout endpoint without JWT token should fail."""
-    response = client.post("/logout")
+    response = client.post("/api/v1/auth/logout")
     assert response.status_code == 403  # HTTPBearer returns 403 when no credentials
 
 
@@ -259,7 +259,7 @@ def test_refresh_token_flow_integration(client, test_admin):
 
     # 4. Use new access token
     new_auth_headers = {"Authorization": f"Bearer {new_access_token}"}
-    protected_response2 = client.get("/protected", headers=new_auth_headers)
+    protected_response2 = client.get("/api/v1/protected", headers=new_auth_headers)
     assert protected_response2.status_code == 200
 
     # 5. Logout with both tokens

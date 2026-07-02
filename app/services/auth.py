@@ -5,6 +5,7 @@ from fastapi import HTTPException, status, Depends
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 # import jwt
 from jose import jwt
+from jose.exceptions import JWTError
 import secrets
 from datetime import datetime, timedelta, timezone
 from typing import Dict, Tuple
@@ -144,7 +145,7 @@ def decode_jwt_token(token: str) -> Dict:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED, detail="Token has expired"
         )
-    except jwt.InvalidTokenError:
+    except JWTError:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid token"
         )
