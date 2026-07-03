@@ -15,7 +15,14 @@ class Settings(BaseSettings):
     REFRESH_EXPIRE_REMEMBER_DAYS: int = 30
     REFRESH_EXPIRE_DEFAULT_DAYS: int = 7
     ROTATE_REFRESH: bool = False
+    #+database_postgresql
+    DATABASE_URL: str = "postgresql+asyncpg://admin:admin123@localhost:5432/homelab"
 
+    @property
+    def DATABASE_URL_SYNC(self) -> str:
+        """Синхронная версия URL для Alembic."""
+        return self.DATABASE_URL.replace("+asyncpg", "")
+    
     model_config = ConfigDict(
         env_file=".env",
         env_file_encoding="utf-8",

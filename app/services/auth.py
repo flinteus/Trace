@@ -13,7 +13,7 @@ from typing import Dict, Tuple
 from pydantic import UUID4
 
 from app.core.config import settings
-from app.models import RefreshTokenResponse, RefreshTokenInfo
+from app.models.auth import RefreshTokenResponse, RefreshTokenInfo
 
 # Simple in-memory token blacklist store
 # In production, use Redis or a database

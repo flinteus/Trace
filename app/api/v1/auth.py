@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends
 from fastapi.encoders import jsonable_encoder
 from fastapi.security import HTTPAuthorizationCredentials
 
-from app.models import (
+from app.models.auth import (
     LoginRequest,
     LoginResponse,
     RefreshTokenRequest,

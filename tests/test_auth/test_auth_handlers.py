@@ -10,7 +10,7 @@ from mypy.typeops import false_only
 
 from app.core. config import settings
 from app.database.db import UserModel
-from app.models import RefreshTokenInfo
+from app.models.auth import RefreshTokenInfo
 from app.services.auth import (
     blacklisted_tokens,
     refresh_tokens,

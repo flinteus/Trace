@@ -11,7 +11,7 @@ from app.services.auth import (
     create_token_pair,
     get_current_user,
 )
-from app.models import (
+from app.models.auth import (
     RegistrationRequest,
     RefreshTokenResponse,
     LoginRequest,

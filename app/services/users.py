@@ -7,7 +7,7 @@ from pydantic import UUID4
 from starlette import status
 
 from app.database.db import DB_USERS, UserFullModel, UserModel
-from app.models import RegistrationRequest
+from app.models.auth import RegistrationRequest
 from app.services.helpers import generate_user_uid
 
 

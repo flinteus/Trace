@@ -3,7 +3,7 @@ from fastapi.encoders import jsonable_encoder
 from pydantic import UUID4
 
 from app.database.db import UserModel
-from app.models import ErrorMessage
+from app.models.auth import ErrorMessage
 from app.services.auth import get_current_user
 from app.services.business_logic import roles
 from app.services.users import get_user
