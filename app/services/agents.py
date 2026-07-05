@@ -29,7 +29,6 @@ async def register_agent(
             detail=f"Agent with hostname '{agent_data.hostname}' already exists"
         )
 
-    # нужно будет сделать репозиторий асинхронным.
     new_agent = agent_repo.create_agent(
         db=db,
         user_id=current_user.id,
@@ -45,3 +44,14 @@ async def register_agent(
     await db.refresh(new_agent)  # обновляем объект из БД (получаем id, created_at и т.д.)
 
     return new_agent
+
+
+async def get_agents(
+    db: AsyncSession,
+    current_user: User,
+    limit: int = 100,
+    offset: int = 0,  
+) -> list[Agent]:
+    
+        return await agent_repo.get_agents(db, current_user.id, limit, offset)
+
