@@ -1,0 +1,29 @@
+from pydantic import BaseModel, Field
+from typing import Optional
+from datetime import datetime
+
+class AgentCreate(BaseModel):
+    """схема для регистрации нового агента."""
+    name: str = Field(..., description="Отображаемое имя сервера")
+    hostname: str = Field(..., description="Хостнейм сервера (уникальный)")
+    public_ip: Optional[str] = Field(None, description="Публичный IP")
+    local_ip: Optional[str] = Field(None, description="Локальный IP")
+    version: str = Field("1.0.0", description="Версия агента")
+
+class AgentResponse(BaseModel):
+    """ответ на данные агента"""
+    id: str
+    user_id: str
+    name: str
+    hostname: str
+    public_ip: Optional[str]
+    local_ip: Optional[str]
+    status: str
+    version: str
+    last_seen: Optional[datetime]
+    created_at: datetime
+    updated_at: Optional[datetime]
+    
+    class Config:
+        from_attributes = True
+
