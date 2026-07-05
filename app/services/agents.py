@@ -5,7 +5,7 @@ from sqlalchemy import select
 from app.models.user import User
 from app.models.agent import Agent
 from app.repository import agents as agent_repo
-from app.schemas.agent import AgentCreate
+from app.schemas.agent import AgentCreate, AgentResponse
 
 async def register_agent(
     db: AsyncSession,
@@ -55,3 +55,23 @@ async def get_agents(
     
         return await agent_repo.get_agents(db, current_user.id, limit, offset)
 
+async def get_agent_by_id(
+    agent_id: int,
+    db: AsyncSession,
+    user_id: int,
+) -> AgentResponse:
+     
+    stmt = select(Agent).where(
+        Agent.id == agent_id,
+        Agent.user_id == user_id
+    )
+    result = await db.execute(stmt)
+    existing_agent = result.scalar_one_or_none()
+
+    if existing_agent:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Agent with id '{agent_id}' not fuond"
+        )
+     
+    return await agent_repo.get_agent_by_id_repo(agent_id, db, user_id)

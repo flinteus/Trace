@@ -59,3 +59,15 @@ async def get_agents(
     stmt = select(Agent).where(Agent.user_id == user_id).limit(limit).offset(offset)
     result = await db.execute(stmt)
     return result.scalars().all()
+
+
+async def get_agent_by_id_repo(
+        agent_id: int, 
+        db: AsyncSession, 
+        user_id: int
+) -> AgentResponse:
+    
+    stmt = select(Agent).where(Agent.id == agent_id, Agent.user_id == user_id)
+    result = await db.execute(stmt)
+
+    return result.scalars().all()
