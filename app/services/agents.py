@@ -108,4 +108,27 @@ async def put_agent(
     await db.refresh(existing_agent)
     
     return existing_agent
-     
+
+
+async def del_agent(
+    db: AsyncSession,
+    user_id: str,
+    agent_id: str,
+) -> None:
+
+    stmt = select(Agent).where(
+        Agent.id == agent_id,
+        Agent.user_id == user_id
+    )
+    result = await db.execute(stmt)
+    agent = result.scalar_one_or_none()
+    
+    if not agent:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Agent not found or access denied"
+        )
+
+    await db.delete(agent)
+    
+    await db.commit()
