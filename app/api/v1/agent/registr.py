@@ -7,7 +7,7 @@ from app.services import agents as agent_servise
 from app.schemas.agent import AgentCreate
 from app.dependecy import get_current_user 
 
-router = APIRouter()
+router = APIRouter(tags=["Agents"])
 
 @router.post("/registr")
 async def create_server(

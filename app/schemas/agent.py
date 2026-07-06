@@ -27,3 +27,11 @@ class AgentResponse(BaseModel):
     class Config:
         from_attributes = True
 
+
+class AgentUpdate(BaseModel):
+    """обнавление агента"""
+
+    name: Optional[str] = None
+    public_ip: Optional[str] = None
+    local_ip: Optional[str] = None
+    version: Optional[str] = None   

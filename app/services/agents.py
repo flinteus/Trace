@@ -5,7 +5,7 @@ from sqlalchemy import select
 from app.models.user import User
 from app.models.agent import Agent
 from app.repository import agents as agent_repo
-from app.schemas.agent import AgentCreate, AgentResponse
+from app.schemas.agent import AgentCreate, AgentResponse, AgentUpdate
 
 async def register_agent(
     db: AsyncSession,
@@ -75,3 +75,37 @@ async def get_agent_by_id(
         )
      
     return await agent_repo.get_agent_by_id_repo(agent_id, db, user_id)
+
+
+async def put_agent(
+    agent_id: int,
+    agent_data: AgentUpdate,
+    db: AsyncSession, 
+    user_id: int,
+) -> Agent:
+        
+    stmt = select(Agent).where(
+    Agent.id == agent_id,
+    Agent.user_id == user_id
+    )
+    result = await db.execute(stmt)
+    existing_agent = result.scalar_one_or_none()
+
+    if existing_agent:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Agent not found or access denied"
+        )
+    
+    update_data = agent_data.model_dump(exclude_unset=True)
+    
+    for key, value in update_data.items():
+        if hasattr(existing_agent, key):
+            setattr(existing_agent, key, value)
+    
+    
+    await db.commit()
+    await db.refresh(existing_agent)
+    
+    return existing_agent
+     
