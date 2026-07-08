@@ -1,5 +1,5 @@
 from pydantic import BaseModel, Field
-from typing import Optional
+from typing import Optional, Literal
 from datetime import datetime
 from app.models.enum import StatusType
 
@@ -43,6 +43,7 @@ class AgentHeartbeat(BaseModel):
     public_ip: str
     local_ip: Optional[str]
     version: Optional[str] = "1.0.0"
-    status: Optional[StatusType] = StatusType.ONLINE
+    status: Literal[StatusType.ONLINE, StatusType.OFFLINE, StatusType.ERROR] = StatusType.ONLINE
+    
 
 
