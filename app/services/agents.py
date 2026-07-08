@@ -1,11 +1,14 @@
+import datetime
+
 from sqlalchemy.ext.asyncio import AsyncSession
 from fastapi import Depends, HTTPException, status
 from sqlalchemy import select
 
 from app.models.user import User
 from app.models.agent import Agent
+from app.models.enum import StatusType
 from app.repository import agents as agent_repo
-from app.schemas.agent import AgentCreate, AgentResponse, AgentUpdate
+from app.schemas.agent import AgentCreate, AgentResponse, AgentUpdate, AgentHeartbeat
 
 async def register_agent(
     db: AsyncSession,
@@ -132,3 +135,46 @@ async def del_agent(
     await db.delete(agent)
     
     await db.commit()
+
+async def process_heartbeat(
+    db: AsyncSession,
+    user_id: str,
+    heartbeat_data: AgentHeartbeat,
+):
+    stmt = select(Agent).where(
+        Agent.hostname == heartbeat_data.hostname,
+        Agent.user_id == user_id
+    )
+
+    result = await db.execute(stmt)
+    agent = result.scalar_one_or_none()
+
+    if not stmt:
+        
+        agent = await agent_repo.create_agent(
+            db=db,
+            user_id=user_id,
+            name=heartbeat_data.hostname,
+            hostname=heartbeat_data.hostname,
+            public_ip=heartbeat_data.public_ip,
+            local_ip=heartbeat_data.local_ip,
+            status=StatusType.ONLINE,
+            version=heartbeat_data.version,
+        )
+        await db.commit()
+        await db.refresh(agent)
+
+        return agent
+    
+    agent.public_ip = heartbeat_data.public_ip
+    agent.local_ip = heartbeat_data.local_ip or agent.local_ip
+    agent.version = heartbeat_data.version
+    agent.status = heartbeat_data.status
+    agent.last_seen = datetime.utcnow()
+    
+    await db.commit()
+    await db.refresh(agent)
+
+    return agent
+
+

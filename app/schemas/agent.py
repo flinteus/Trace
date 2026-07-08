@@ -1,6 +1,7 @@
 from pydantic import BaseModel, Field
 from typing import Optional
 from datetime import datetime
+from app.models.enum import StatusType
 
 class AgentCreate(BaseModel):
     """схема для регистрации нового агента."""
@@ -35,3 +36,13 @@ class AgentUpdate(BaseModel):
     public_ip: Optional[str] = None
     local_ip: Optional[str] = None
     version: Optional[str] = None   
+
+class AgentHeartbeat(BaseModel):
+
+    hostname: str
+    public_ip: str
+    local_ip: Optional[str]
+    version: Optional[str] = "1.0.0"
+    status: Optional[StatusType] = StatusType.ONLINE
+
+
