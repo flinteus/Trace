@@ -13,7 +13,7 @@ from app.dependecy import get_current_user
 router = APIRouter(tags=["Logs"])
 
 @router.get("/api/v1/agents/{agent_id}/logs")
-async def get_all_logs(
+async def get_logfile(
     agent_id: int,
     db: AsyncSession = Depends(get_db), 
     current_user: User = Depends(get_current_user),
@@ -42,6 +42,7 @@ async def get_log(
 async def get_last_logs(
     log_name: str,
     agent_id: int,
+    params: LogQueryParams = Depends(),
     db: AsyncSession = Depends(get_db), 
     current_user: User = Depends(get_current_user),
 ):

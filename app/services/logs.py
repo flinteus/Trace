@@ -1,11 +1,14 @@
 import os
 import aiofiles
 import re
-from typing import Optional, List, Tuple
+from typing import Optional, Tuple
 from datetime import datetime
+from sqlalchemy.ext.asyncio import AsyncSession
 from fastapi import HTTPException, status
+from sqlalchemy import select
 
 from app.schemas.log import LogQueryParams, LogResponse, LogEntry
+from app.models.agent import Agent
 
 # Константы (можно вынести в config)
 ALLOWED_LOG_PATHS = [
@@ -128,3 +131,44 @@ async def read_log(
         raise HTTPException(403, "Permission denied")
     except Exception as e:
         raise HTTPException(500, f"Error reading log: {str(e)}")
+
+
+async def get_logfile(
+        db: AsyncSession,
+        user_id: str,
+        agent_id: str,
+        params: LogQueryParams,
+        agent_base_path: str = "/var/log",
+) -> list[LogResponse]:
+    
+    stmt = select(Agent).where(
+        Agent.id == agent_id,
+        Agent.user_id == user_id
+    )
+    result = await db.execute(stmt)
+    agent = result.scalar_one_or_none()
+    
+    if not agent:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Agent not found or access denied"
+        )        
+    
+    async with aiofiles.open(agent_base_path, 'r', encoding='utf-8') as f:
+            if params.offset > 0:
+                await f.seek(params.offset)    
+
+            result = [x for x in f]
+
+            # return LogResponse(
+            #     log_name=log_name,
+            #     total_lines=None,  
+            #     returned_lines=len(entries),
+            #     entries=entries,
+            #     has_more=has_more,
+            #     next_offset=current_pos if has_more else None,
+            # )
+            
+            #TODO: доделать эндромнт
+
+
